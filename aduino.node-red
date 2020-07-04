@@ -1,0 +1,105 @@
+#include <ESP8266WiFi.h> // 와이파이통신을 위한 ESP8266헤더파일
+#include <PubSubClient.h> // PubSubClient헤더파일
+
+const char* ssid = "KT_GiGA_2G_Wave2_436A"; // 와이파이 AP, 또는 스마트폰의 핫스판 이름
+const char* password = "bee70cx771";  // 와이파이 AP, 또는 스마트폰의 핫스판 이름
+const char* mqtt_server = "broker.mqtt-dashboard.com"; //브로커 주소
+const char* outTopic = "DDYOUT"; // 이름이 중복되지 않게 설정 기록
+const char* inTopic = "DDYOUT"; // 이름이 중복되지 않게 설정 기록
+const char* clientName = "DDY";  //클라이언트이름 node-red
+
+
+WiFiClient espClient; // wifi client
+PubSubClient client(espClient); // pubsub client
+long lastMsg = 0; 
+char msg[50];
+
+int led=4; // D2 GPIO4 
+int timeIn=0; 
+
+void setup() {
+  pinMode(led, OUTPUT);// LED가 꽂혀있는 Pin에 출력 OUTPUT
+       
+  Serial.begin(115200); // 115200으로 시리얼 통신
+  setup_wifi(); // 셋업 와이파이 호출
+  client.setServer(mqtt_server, 1883); // MQTT서버 1883
+  client.setCallback(callback); // 콜백
+}
+
+void setup_wifi() {
+
+  delay(10);
+  // We start by connecting to a WiFi network
+  Serial.println();
+  Serial.print("Connecting to "); // 시리얼모니터에 연결중이라고 뜬다.
+  Serial.println(ssid); // 시리얼 모니터에 와이파이 id가 뜬다
+
+  WiFi.begin(ssid, password); // 와이파이 아이디 패스워드 읽는다.
+
+  while (WiFi.status() != WL_CONNECTED) {  // 와이파이정보와 커넥티드가 안되면 딜 500, ...
+    delay(500);
+    Serial.print("."); 
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected"); // 와이파이 연결이 됐음.
+  Serial.println("IP address: "); // 아이디 주소값:
+  Serial.println(WiFi.localIP());// 컴퓨터에 해당 ip주소.
+}
+
+void callback(char* topic, byte* payload, unsigned int length) { // 콜백, 토픽 /문자값 /길이
+  Serial.print("Message arrived ["); 
+  Serial.print(topic); // 메세지 arrived[토픽]
+  Serial.print("] ");
+  for (int i = 0; i < length; i++) { 
+    Serial.print((char)payload[i]);  위 내용을 시리얼에 출력
+  }
+  Serial.println();
+
+  String inString="";
+  for (int i = 0; i < length; i++) {
+    inString += (char)payload[i]; // payload값을 inString과 더하고 그 값을 다시 inString에 초기화.
+  }
+  timeIn=inString.toInt(); // payload값을 정수로 바꿔줌.
+
+  // Switch on the LED if an 1 was received as first character
+  if ((char)payload[0] == '1') { // 값이 1로 동일할 때
+    digitalWrite(led, HIGH);   // Turn the LED on (Note that LOW is the voltage level
+    // but actually the LED is on; this is because
+    // it is acive low on the ESP-01)
+  } else { // 아니면
+    digitalWrite(led, LOW);  // Turn the LED off by making the voltage HIGH
+  }
+
+}
+
+void reconnect() { // 커넥티드가 연결을 재연결해야 될 경우.
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    if (client.connect(clientName)) {
+      Serial.println("connected");
+      // Once connected, publish an announcement...
+      client.publish(outTopic, "Reconnected");
+      // ... and resubscribe
+      client.subscribe(inTopic);
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
+void loop() { // loop
+
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+  
+  //digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)                     // wait for a second
+  //digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
+}
