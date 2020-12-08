@@ -1,21 +1,23 @@
-#include <ESP8266WiFi.h>
+// 와이파이와 웹서버 연결을 위한 헤더파일
+#include <ESP8266WiFi.h> 
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <WiFiManager.h> 
-#include <Servo.h>
+#include <Servo.h> // 서보모터 헤더파일
 
-String sChipId="";
+//칩 자동생성 필요 변수
+String sChipId=""; 
 char cChipId[40]="";
-ESP8266WebServer server(80);
+ESP8266WebServer server(80); // 서버 80번포트 연결
 
 String s;
 int i;
 int ledOn=0;
 int Moteron=0;
-const int servoPin = 5;
+const int servoPin = 5; // 서보모터 5번 핀 연결
 
 int pos = 0;
-Servo servome;
+Servo servome; // 서보모터 변수지정
 
 
 void setup() {
@@ -47,7 +49,7 @@ void setup() {
 
   //if you get here you have connected to the WiFi
   Serial.println("connected... :)");
-
+  // 서버클라이언트 동작
   server.on("/", handleRoot);
   server.on("/on", handleOn);
   server.on("/off", handleOff);
@@ -59,5 +61,5 @@ void setup() {
 }
 
 void loop() {
-  server.handleClient();
+  server.handleClient(); // 핸들클라이언트 루프동작
 }

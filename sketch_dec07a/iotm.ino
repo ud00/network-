@@ -1,14 +1,18 @@
+//웹사이트 디자인 html&CSS
 String webHead="<html>\n    <head>\n        <meta name='viewport' content='width=device-width, initial-scale=1.0'/>\n        <meta http-equiv='Content-Type' content='text/html;charset=utf-8' />\n        <style>\n            .button {\n                border: none;\n                color: white;\n                padding: 20px;\n                text-align: center;\n                text-decoration: none;\n                display: inline-block;\n                font-size: 16px;\n                margin: 4px 2px;\n                cursor: pointer;\n            }\n            .button-on {border-radius: 100%; background-color: #4CAF50;}\n            .button-off {border-radius: 100%;background-color: #707070;}\n        </style>\n    </head>\n    <body>\n      <h1>밥잘주는 웹사이트</h1>";
 String webTail="\n<p><a href='/wifi'>네트웍공유기변경-누른후 와이파설정부터 다시하세요</a></p></body>\n</html>";
 
+
 void handleRoot() {
   String s=""; 
-
+  
+  //버튼 기능
   if(ledOn==1) 
     s=s+"<a href=\"off\"> <button id=\"button01\" class=\"button button-on\" >밥준다</button></a>";
   else 
     s=s+"<a href=\"on\"> <button id=\"button01\" class=\"button button-off\" >밥 안준다</button></a>";
-
+  
+  //form action을 사용한 추가기능버튼
     s+="<form action='/Mon'>";
   if(Moteron==1)
     s=s+"<button type= 'submit' name='button' value='0' class='button button-on' >추가기능버튼</button></a>";
@@ -27,6 +31,7 @@ void handleWifi() {
   ESP.reset();
 }
 
+//밥준다 버튼이 온일 때 서보모터 90도 동작
 void handleOn() {
   ledOn=1;
   //digitalWrite(LED, 0);
@@ -41,6 +46,7 @@ void handleOn() {
   GoHome();
 }
 
+//밥 안준다 버튼이 off일 때 서보모터 원상복귀 동작
 void handleOff() {
   ledOn=0;
   //digitalWrite(LED, 1);
@@ -55,6 +61,7 @@ void handleOff() {
   GoHome();
 }
 
+//추가기능버튼 누르면 3번 2초마다 90도 1도 반복
 void handleMON(){
   int no= server.arg("button").toInt();
   if(Moteron==1)
@@ -85,7 +92,7 @@ void handleMON(){
   GoHome();
 }
 
-
+//리프레쉬 기능을 해주는 함수 
 void GoHome() {
   String s,ipS;
   //IPAddress ip;
@@ -94,6 +101,7 @@ void GoHome() {
   server.send(200, "text/html", s);
 }
 
+//핸들클라운트 함수를 찾을 수 경우 함수실행
 void handleNotFound() {
   String message = "File Not Found\n\n";
   message += "URI: ";
